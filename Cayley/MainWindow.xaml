@@ -1,0 +1,112 @@
+﻿<Window x:Class="Cayley.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Cayley"
+        mc:Ignorable="d"
+        Title="Graph Drawer" Width="1366" Height="768">
+    <Grid>
+        <Grid.Resources>
+            <Style TargetType="{x:Type Button}">
+                <Setter Property="OverridesDefaultStyle" Value="True"/>
+                <Setter Property="Margin" Value="5"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Name="border"
+                            BorderThickness="1"
+                            Padding="4,2"
+                            BorderBrush="DarkGray"
+                            CornerRadius="3"
+                            Background="{TemplateBinding Background}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="border" Property="BorderBrush" Value="Black" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Grid.Resources>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="100"/>
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="30"/>
+            </Grid.RowDefinitions>
+            <local:GraphCanvas x:Name="canvas" Grid.Row="0" Background="White"/>
+            <ScrollViewer x:Name="foundGroupsViewer" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="LightGray" Height="200" Width="600" Margin="5,5,5,5" Visibility="Hidden">
+                <ItemsControl Name="foundItemsControl">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,0,5,5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="550" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding Order}" />
+                                <ProgressBar Grid.Column="1" HorizontalAlignment="Left" Width="{Binding Width}" Minimum="0" Maximum="{Binding Maximum}" Value="{Binding Count}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            <TextBlock Name="display" Grid.Row="1" Margin="5,5,5,5" TextAlignment="Right"/>
+        </Grid>
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="100"/>
+                <RowDefinition Height="200"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="40"/>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Button Grid.Row="0" Grid.Column="0" Background="Red" Click="SetRed"></Button>
+                <Button Grid.Row="0" Grid.Column="1" Background="Blue" Click="SetBlue"></Button>
+                <Button Grid.Row="1" Grid.Column="0" Background="Green" Click="SetGreen"></Button>
+                <Button Grid.Row="1" Grid.Column="1" Background="Orange" Click="SetOrange"></Button>
+                <Button Height="40" Width="40" Margin="30" Background="Black" Click="SetBlack" Grid.ColumnSpan="2" Grid.RowSpan="2"/>
+            </Grid>
+            <Grid Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="30"/>
+                    <RowDefinition Height="30"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Button Grid.Row="0" Click="PointsButton_Click">Clear/Form</Button>
+                <StackPanel Orientation="Horizontal" Grid.Row="1">
+                    <Button x:Name="cmdUp_m" x:FieldModifier="private" Margin="5,5,0,5" Content="˄" Width="20" Click="cmdUp_Click_m"/>
+                    <Button x:Name="cmdDown_m" x:FieldModifier="private" Margin="0,5,0,5"  Content="˅" Width="20" Click="cmdDown_Click_m"/>
+                    <TextBlock x:Name="txt_m" x:FieldModifier="private" Margin="5,5,0,5" Width="50" Text="0"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Grid.Row="2">
+                    <Button x:Name="cmdUp_n" x:FieldModifier="private" Margin="5,5,0,5" Content="˄" Width="20" Click="cmdUp_Click_n"/>
+                    <Button x:Name="cmdDown_n" x:FieldModifier="private" Margin="0,5,0,5"  Content="˅" Width="20" Click="cmdDown_Click_n"/>
+                    <TextBlock x:Name="txt_n" x:FieldModifier="private" Margin="5,5,0,5" Width="50" Text="0"/>
+                </StackPanel>
+                <Button Grid.Row="3" Name="clearButton" Click="ClearButton_Click">Clear</Button>
+            </Grid>
+            <Button Grid.Row="2" Name="checkButton" Click="CheckButton_Click">Check</Button>
+            <Button Grid.Row="3" Name="foundButton" MouseEnter="FoundButton_Enter" MouseLeave="FoundButton_Leave" MouseWheel="FoundButton_MouseWheel">Found</Button>
+            <Button Grid.Row="4" Name="quitButton" Click="QuitButton_Click">Quit</Button>
+        </Grid>
+    </Grid>
+</Window>
