@@ -148,8 +148,13 @@ namespace Cayley
             // Decision tree from your nightmares. Abandon all hope ye who enter here.
             if (seq[graph.Order - 1] == graph.Order) { groupID = 0; groupName = "Z" + graph.Order; return; }
             else if (factors.Length == 2 && factors[0] == factors[1]) { groupID = 1; groupName = "Z" + factors[0] + "^2"; return; }
-            else if (factors.Length == 2 && factors[0] == 2) { groupID = 1; groupName = "D" + factors[1]; return; }
-            else if (factors.Length == 2 && factors[1] % factors[0] == 1) { groupID = 1; groupName = "<x,y | x^" + factors[1] + " = y^" + factors[0] + " = 1, yxy^-1 = x^" + (factors[0] * factors[0]) % factors[1] + ">"; return; }
+            else if (factors.Length == 2 && factors[0] == 2) { groupID = 1; groupName = (graph.Order == 6 ? "S" : "D") + factors[1]; return; }
+            else if (factors.Length == 2 && factors[1] % factors[0] == 1)
+            {
+                groupID = 1;
+                groupName = "<x,y | x^" + factors[1] + " = y^" + factors[0] + " = 1, yxy^-1 = x^" + (factors[0] * factors[0]) % factors[1] + ">";
+                return;
+            }
             else if (graph.Order == 8)
             {
                 if (seq[7] == 2) { groupID = 1; groupName = "Z2^3"; return; }
@@ -342,7 +347,7 @@ namespace Cayley
                 }
                 else
                 {
-                    if (graph.Degree == 2) { groupID = 50; groupName = "Z4 Wr Z2"; return; } // This is sufficient and efficient but not necessary. Need another check.
+                    if (graph.Degree == 2) { groupID = 50; groupName = "Z4 Wr Z2"; return; } // This is sufficient but not necessary. Need another check.
                     // Z4 Wr Z2 (maybe find a representation for this one wreath products are too awesome)
                     // <x,y,z | x^2 = z^2 = y^2(zx)^2 = 1, yz = zy, xy^2x = y^2, (xy^-1)^3 = y^-1x>
                 }

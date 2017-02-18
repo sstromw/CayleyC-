@@ -7,7 +7,7 @@ namespace Cayley
     public class Graph
     {
         public const int MAX_VERTICES = 63;
-        public const int MAX_GENERATORS = 2;
+        public const int MAX_GENERATORS = 5;
 
         private int[,] outEdges;
         private int[,] inEdges;
@@ -118,7 +118,8 @@ namespace Cayley
             }
 
             order--;
-            
+
+            bool[] count = new bool[degree];
             for (int i = 0; i < order; i++)
             {
                 for (int j = 0; j < degree; j++)
@@ -128,6 +129,32 @@ namespace Cayley
 
                     if (outEdges[i, j] == point) outEdges[i, j] = -1;
                     else if (outEdges[i, j] > point) outEdges[i, j]--;
+
+                    if (!count[j] && (inEdges[i, j] != -1 || outEdges[i, j] != -1)) count[j] = true;
+                }
+            }
+
+            for (int i = 0; i < degree; i++)
+            {
+                if (!count[i])
+                {
+                    degree--;
+                    for (int j = i; j < degree; j++)
+                    {
+                        colors[i] = colors[i + 1];
+                        for (int k = 0; k < order; k++)
+                        {
+                            inEdges[k, j] = inEdges[k, j + 1];
+                            outEdges[k, j] = outEdges[k, j + 1];
+                        }
+                    }
+
+                    colors[degree] = null;
+                    for (int k = 0; k < order; k++)
+                    {
+                        inEdges[k, degree] = -1;
+                        outEdges[k, degree] = -1;
+                    }
                 }
             }
         }
@@ -147,7 +174,7 @@ namespace Cayley
             Queue<int> Q = new Queue<int>();
             Q.Enqueue(start);
 
-            int u, v;
+            int u, v, t = 0;
             while (Q.Count > 0)
             {
                 u = Q.Dequeue();
@@ -157,7 +184,7 @@ namespace Cayley
                     if (v != -1 && !visited[v])
                     {
                         visited[v] = true;
-                        d[v] = d[u] + 1;
+                        d[v] = t++;
                         parents[v] = i;
                         Q.Enqueue(v);
                     }
