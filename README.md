@@ -1,4 +1,4 @@
 # CayleyCSharp
 Cayley Graph Drawer Project
 
-This has nothing to do with Google's Cayley. It's about the actual Cayley graphs.
+This has nothing to do with the graph database Cayley. It's about the actual Cayley graphs.
