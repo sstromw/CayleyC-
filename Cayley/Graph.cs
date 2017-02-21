@@ -167,14 +167,13 @@ namespace Cayley
             for (int i = 0; i < order; i++)
             {
                 parents[i] = -1;
-                d[i] = 0;
                 visited[i] = false;
             }
 
             Queue<int> Q = new Queue<int>();
             Q.Enqueue(start);
 
-            int u, v, t = 0;
+            int u, v, t = 1;
             while (Q.Count > 0)
             {
                 u = Q.Dequeue();
@@ -236,7 +235,7 @@ namespace Cayley
                     for (; k < order && (compare.Item1[j] != refer.Item1[k] || compare.Item2[j] != refer.Item2[k]); k++);
                     if (k == order)
                     {
-                        // 3. Homogeneity (this is broken!)
+                        // 3. Homogeneity
                         return null;
                     }
                 }

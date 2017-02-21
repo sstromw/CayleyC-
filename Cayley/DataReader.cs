@@ -14,6 +14,10 @@ namespace Cayley
         {
             if (File.Exists(filename))
             {
+                if (File.ReadAllLines(filename).Length != Graph.MAX_VERTICES)
+                {
+                    throw new Exception("Your file is fucked");
+                }
                 groups = Array.ConvertAll(File.ReadAllLines(filename), b => ushort.Parse(b));
             }
             else

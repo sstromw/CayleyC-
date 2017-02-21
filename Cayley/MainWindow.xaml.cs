@@ -45,6 +45,8 @@ namespace Cayley
         {
             Button button = sender as Button;
             Group G = canvas.Graph.ToCayleyGraph();
+            Storyboard story;
+            ColorAnimation fade;
 
             if (G != null)
             {
@@ -53,6 +55,15 @@ namespace Cayley
                 
                 if (G.GroupID != -1 && !data.IsGroupFound(G.Order, G.GroupID))
                 {
+                    foundButton.Background = Brushes.Green;
+
+                    story = new Storyboard();
+                    fade = new ColorAnimation() { To = Colors.Transparent, Duration = TimeSpan.FromSeconds(2) };
+                    Storyboard.SetTarget(fade, foundButton);
+                    Storyboard.SetTargetProperty(fade, new PropertyPath("Background.Color"));
+                    story.Children.Add(fade);
+                    story.Begin();
+
                     data.AddGroup(G.Order, G.GroupID);
                     foreach (FoundItem f in foundItemsControl.ItemsSource)
                     {
@@ -62,6 +73,8 @@ namespace Cayley
                             break;
                         }
                     }
+
+
                 }
             }
             else
@@ -70,8 +83,8 @@ namespace Cayley
                 display.Text = string.Empty;
             }
 
-            Storyboard story = new Storyboard();
-            ColorAnimation fade = new ColorAnimation() { To = Colors.Transparent, Duration = TimeSpan.FromSeconds(2) };
+            story = new Storyboard();
+            fade = new ColorAnimation() { To = Colors.Transparent, Duration = TimeSpan.FromSeconds(2) };
             Storyboard.SetTarget(fade, button);
             Storyboard.SetTargetProperty(fade, new PropertyPath("Background.Color"));
             story.Children.Add(fade);
