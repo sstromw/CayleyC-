@@ -1,4 +1,6 @@
-﻿using System;
+﻿//#define RECORD_DATA
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows;
@@ -14,7 +16,9 @@ namespace Cayley
     /// </summary>
     public partial class MainWindow : Window
     {
+#if DEBUG
         private DataReader data;
+#endif
 
         public MainWindow()
         {
@@ -25,6 +29,7 @@ namespace Cayley
             txt_m.Text = m.ToString();
             txt_n.Text = n.ToString();
 
+#if DEBUG
             data = new DataReader();
 
             List<FoundItem> items = new List<FoundItem>();
@@ -34,6 +39,7 @@ namespace Cayley
             }
 
             foundItemsControl.ItemsSource = items;
+#endif
         }
 
         private void PointsButton_Click(object sender, RoutedEventArgs e)
@@ -52,7 +58,8 @@ namespace Cayley
             {
                 button.Background = Brushes.Green;
                 display.Text = G.GroupName;
-                
+
+#if DEBUG
                 if (G.GroupID != -1 && !data.IsGroupFound(G.Order, G.GroupID))
                 {
                     foundButton.Background = Brushes.Green;
@@ -73,9 +80,8 @@ namespace Cayley
                             break;
                         }
                     }
-
-
                 }
+#endif
             }
             else
             {
@@ -104,18 +110,24 @@ namespace Cayley
 
         private void FoundButton_Enter (object sender, RoutedEventArgs e)
         {
+#if DEBUG
             foundGroupsViewer.Visibility = Visibility.Visible;
+#endif
         }
 
         private void FoundButton_Leave(object sender, RoutedEventArgs e)
         {
+#if DEBUG
             foundGroupsViewer.Visibility = Visibility.Hidden;
+#endif
         }
 
         private void FoundButton_MouseWheel(object sender, MouseWheelEventArgs e)
         {
+#if DEBUG
             foundGroupsViewer.ScrollToVerticalOffset(foundGroupsViewer.VerticalOffset - e.Delta);
             e.Handled = true;
+#endif
         }
 
         private void SetBlack(object sender, RoutedEventArgs e) { canvas.EdgeColor = Brushes.Black; }
@@ -124,7 +136,7 @@ namespace Cayley
         private void SetGreen(object sender, RoutedEventArgs e) { canvas.EdgeColor = Brushes.Green; }
         private void SetOrange(object sender, RoutedEventArgs e) { canvas.EdgeColor = Brushes.Orange; }
 
-        #region Number picker
+#region Number selector
 
         private int m, n;
 
@@ -153,7 +165,7 @@ namespace Cayley
             txt_n.Text = n.ToString();
         }
 
-        #endregion
+#endregion
     }
 
     public class FoundItem : INotifyPropertyChanged

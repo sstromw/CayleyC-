@@ -3,12 +3,14 @@ using System.IO;
 
 namespace Cayley
 {
+#if DEBUG
+    // I really gotta make this class better
     class DataReader
     {
         private static string filename = "found_groups.dat";
         public static ushort[] GroupCounts = { 1, 1, 1, 2, 1, 2, 1, 5, 2, 2, 1, 5, 1, 2, 1, 14, 1, 5, 1, 5, 2, 2, 1, 15, 2, 2, 5, 4, 1, 4, 1, 51, 1, 2, 1, 14, 1, 2, 2, 14, 1, 6, 1, 4, 2, 2, 1, 52, 2, 5, 1, 5, 1, 15, 2, 13, 2, 2, 1, 13, 1, 2, 4, 267, 1, 4, 1, 5, 1, 4, 1, 50, 1, 2, 3, 4, 1, 6, 1, 52, 15, 2, 1, 15, 1, 2, 1, 12, 1, 10, 1, 4, 2 };
         
-        ushort[] groups;
+        ulong[] groups;
 
         public DataReader()
         {
@@ -16,14 +18,14 @@ namespace Cayley
             {
                 if (File.ReadAllLines(filename).Length != Graph.MAX_VERTICES)
                 {
-                    throw new Exception("Your file is fucked");
+                    throw new Exception("The file is wrong");
                 }
-                groups = Array.ConvertAll(File.ReadAllLines(filename), b => ushort.Parse(b));
+                groups = Array.ConvertAll(File.ReadAllLines(filename), b => ulong.Parse(b));
             }
             else
             {
                 File.Create(filename);
-                groups = new ushort[Graph.MAX_VERTICES];
+                groups = new ulong[Graph.MAX_VERTICES];
             }
         }
 
@@ -34,7 +36,8 @@ namespace Cayley
 
         public int GetCount(int order)
         {
-            int i, n = groups[order - 1];
+            int i;
+            ulong n = groups[order - 1];
             for (i = 0; n > 0; i++) n &= (n - 1);
             return i;
         }
@@ -50,7 +53,8 @@ namespace Cayley
 
         public void AddGroup(int order, int id)
         {
-            groups[order - 1] |= (ushort)(0x1 << id);
+            groups[order - 1] |= (ulong)0x1 << id;
         }
     }
+#endif
 }

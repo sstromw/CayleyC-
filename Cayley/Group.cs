@@ -133,7 +133,7 @@ namespace Cayley
             return op(a, t);
         }
 
-        private int NumPowers(int n)
+        private int CountPowers(int n)
         {
             HashSet<int> powers = new HashSet<int>();
             for (int i = 0; i < graph.Order; i++)
@@ -248,7 +248,7 @@ namespace Cayley
                 else if (seq[1] == 7)
                 {
                     if (isAbelian) { groupID = 4; groupName = "Z4 x Z2^2"; return; }
-                    else if (NumPowers(2) == 2) { groupID = 5; groupName = "<x,y,z | x^4 = y^2 = (yx)^2 = 1, x^2 = z^2, xz = zx, yz = zy>"; return; } // 13
+                    else if (CountPowers(2) == 2) { groupID = 5; groupName = "<x,y,z | x^4 = y^2 = (yx)^2 = 1, x^2 = z^2, xz = zx, yz = zy>"; return; } // 13
                     else { groupID = 6; groupName = "<x,y,z | x^4 = y^2 = z^2 = 1, xy = yx, yz = zy, zxz^-1 = xy>"; return; } // 3
                 }
                 else if (seq[1] == 5) { groupID = 7; groupName = "<x,y | x^8 = y^2 = 1, yxy^-1 = x^3>"; return; }
@@ -262,7 +262,7 @@ namespace Cayley
                     else
                     {
                         if (isAbelian) { groupID = 10; groupName = "Z4^2"; return; }
-                        if (NumPowers(2) == 3) { groupID = 11; groupName = "<x,y | x^4 = y^4 = 1, yxy^-1 = x^3>"; return; }
+                        if (CountPowers(2) == 3) { groupID = 11; groupName = "<x,y | x^4 = y^4 = 1, yxy^-1 = x^3>"; return; }
                         else { groupID = 12; groupName = "Q8 x Z2"; return; }
                     }
                 }
@@ -316,7 +316,7 @@ namespace Cayley
                 if (seq[1] == 26)
                 {
                     if (isAbelian) { groupID = 1; groupName = "Z3^3"; return; }
-                    else { groupID = 2; groupName = "<x,y,z | x ^ 3 = y ^ 3 = z ^ 3 = 1, zyx = xy, xz = zx, yz = zy>"; return; }
+                    else { groupID = 2; groupName = "<x,y,z | x^3 = y^3 = z^3 = 1, zyx = xy, xz = zx, yz = zy>"; return; }
                 }
                 else
                 {
@@ -346,7 +346,8 @@ namespace Cayley
                     if (seq[2] == 4) { groupID = 3; groupName = "D8 x Z2"; return; }
                     else
                     {
-                        if (GetCenter().Length == 2) { groupID = 4; groupName = "<w,x,y,z | w^2 = x^2 = y^2 = z^2 = (wx)^4 = (yxw)^2 = 1, wy = yw, wz = zw, xz = zx, (xw)^2 = (yz)^2>"; return; } // 49
+                        if (CountPowers(2) == 2) { groupID = 4; groupName = "<w,x,y,z | w^2 = x^2 = y^2 = z^2 = (wx)^4 = (yxw)^2 = 1, wy = yw, wz = zw, xz = zx, (xw)^2 = (yz)^2>"; return; } // 49
+                        // These two have the same order sequence (1, 19, 12, 0, 0, 0), power statistics (32, 4, 1, 1, 1, 1), center (Z2^2), and derived subgroup (Z2^2)
                         // 34 -- D(Z4^2)
                         // 27 -- <x,y,z | x^2 = y^2 = z^2 = (zy)^2 = (yxzx)^2 = (yx)^4 = (zx)^4 = (zxy)^4 = 1>
                     }
@@ -354,13 +355,17 @@ namespace Cayley
                 else if (seq[1] == 17) { groupID = 7; groupName = "D16"; return; }
                 else if (seq[1] == 15)
                 {
-                    if (seq[24] == 8) { groupID = 8; groupName = "<x,y,z | x^8 = y^2 = z^2 = 1, yxy^-1 = x^7, zxz^-1 = x^5>"; return; } // 43
+                    if (seq[2] == 8) { groupID = 8; groupName = "<x,y,z | x^8 = y^2 = z^2 = 1, yxy^-1 = x^7, zxz^-1 = x^5>"; return; } // 43
                     else
                     {
                         if (isAbelian) { groupID = 9; groupName = "Z4 x Z2^3"; return; }
-                        // 22 -- Z2 x <x,y,z | x^4 = y^2 = z^2 = 1, xy = yx, yz = zy, zx = xyz>
-                        // 28 -- <x,y,z | x^2 = y^4 = z^2 = (xy)^2 = (zx)^4 = 1, yz = zy, xy^2 = y^2x>
-                        // 48 -- Z2 x <x,y,z | x^4 = y^2 = (yx)^2 = 1, x^2 = z^2, xz = zx, yz = zy>
+                        int[] Z = GetCenter(); // The centers of the next groups are Z2^2, Z2 x Z4, and Z2^3
+                        if (Z.Length == 4) { groupID = 10; groupName = "<x,y,z | x^2 = y^4 = z^2 = (xy)^2 = (zx)^4 = 1, yz = zy, xy^2 = y^2x>"; return; } // 28
+                        for (int i = 1; i < 5; i++)
+                        {
+                            if (orders[Z[i]] == 4) { groupID = 11; groupName = "Z2 x <x,y,z | x^4 = y^2 = (yx)^2 = 1, x^2 = z^2, xz = zx, yz = zy>"; return; } // 48
+                        }
+                        groupID = 12; groupName = "Z2 x <x,y,z | x^4 = y^2 = z^2 = 1, xy = yx, yz = zy, zx = xyz>"; return; // 22
                     }
                 }
                 else if (seq[1] == 11)
@@ -398,7 +403,7 @@ namespace Cayley
                     {
                         // Maybe find another representation of Z4 Wr Z2. Wreath products are too awesome
                         if (graph.Degree == 2 || GetCenter().Length == 4) { groupID = 30; groupName = "Z4 Wr Z2"; return; }
-                        else { groupID = 31; groupName = "<x,y,z | x^2 = z^2 = y^2(zx)^2 = 1, yz = zy, xy^2x = y^2, (xy^-1)^3 = y^-1x>"; return; }
+                        else { groupID = 31; groupName = "<x,y,z | x^2 = z^2 = y^2(zx)^2 = 1, yz = zy, xy^2x = y^2, (xy^-1)^3 = y^-1x>"; return; } // 44
                     }
                     else
                     {

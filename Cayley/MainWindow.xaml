@@ -3,11 +3,20 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:debug="debug-mode"
         xmlns:local="clr-namespace:Cayley"
-        mc:Ignorable="d"
+        mc:Ignorable="d mc"
         Title="Graph Drawer" Width="1366" Height="768">
     <Grid>
         <Grid.Resources>
+            <!--<mc:AlternateContent>
+                <mc:Choice Requires="debug">
+                    <Visibility x:Key="foundButtonVisibility">Visible</Visibility>
+                </mc:Choice>
+                <mc:Fallback>
+                    <Visibility x:Key="foundButtonVisibility">Hidden</Visibility>
+                </mc:Fallback>
+            </mc:AlternateContent>-->
             <Style TargetType="{x:Type Button}">
                 <Setter Property="OverridesDefaultStyle" Value="True"/>
                 <Setter Property="Margin" Value="5"/>
@@ -105,7 +114,17 @@
                 <Button Grid.Row="3" Name="clearButton" Click="ClearButton_Click">Clear</Button>
             </Grid>
             <Button Grid.Row="2" Name="checkButton" Click="CheckButton_Click">Check</Button>
-            <Button Grid.Row="3" Name="foundButton" MouseEnter="FoundButton_Enter" MouseLeave="FoundButton_Leave" MouseWheel="FoundButton_MouseWheel">Found</Button>
+            <Button Grid.Row="3" Name="foundButton" MouseEnter="FoundButton_Enter" MouseLeave="FoundButton_Leave" MouseWheel="FoundButton_MouseWheel">
+                <Button.Content>Found</Button.Content>
+                <mc:AlternateContent>
+                    <mc:Choice Requires="debug">
+                        <Button.Visibility>Visible</Button.Visibility>
+                    </mc:Choice>
+                    <mc:Fallback>
+                        <Button.Visibility>Hidden</Button.Visibility>
+                    </mc:Fallback>
+                </mc:AlternateContent>
+            </Button>
             <Button Grid.Row="4" Name="quitButton" Click="QuitButton_Click">Quit</Button>
         </Grid>
     </Grid>
