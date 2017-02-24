@@ -79,9 +79,11 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DiscreteMath.cs" />
     <Compile Include="Graph.cs" />
     <Compile Include="Group.cs" />
     <Compile Include="GraphCanvas.cs" />
+    <Compile Include="GroupDescriptions.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

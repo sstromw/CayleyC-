@@ -12,6 +12,7 @@ namespace Cayley
         private const double BUBBLE_DIST = 25.0;
 
         private Point[] vertices;
+        private Brush[] colors;
         private int nearbyVertex;
         private int focusedVertex;
         private Brush edgeColor;
@@ -23,6 +24,7 @@ namespace Cayley
         public GraphCanvas()
         {
             vertices = new Point[Graph.MAX_VERTICES];
+            colors = new Brush[Graph.MAX_GENERATORS];
             edgeColor = Brushes.Black;
             graph = new Graph();
 
@@ -42,15 +44,9 @@ namespace Cayley
             MouseMove += DrawPreviewShapes;
         }
 
-        public Graph Graph
-        {
-            get { return graph; }
-        }
-
-        public Point[] Vertices
-        {
-            get { return vertices; }
-        }
+        public Graph Graph { get { return graph; } }
+        public Point[] Vertices { get { return vertices; } }
+        public Brush[] Colors { get { return colors; } }
 
         public Brush EdgeColor
         {
@@ -58,23 +54,17 @@ namespace Cayley
             set { edgeColor = value; }
         }
         
-        // So this is a debug thing. The code might be used eventually but don't base your design on it
-        // Hack hack hack
-        public void AddShape(int m, int n)
+        /// <summary>
+        /// Add concentric polygons to the graph. Quick way to add lots of points neatly.
+        /// </summary>
+        public void AddShape(int nPolygons, int nPointsOnPolygons)
         {
-            if (m * n > Graph.MAX_VERTICES)
-            {
-                return;
-            }
-
-            if (Children.Count > 2)
-            {
-                ClearAll();
-            }
+            if (nPolygons * nPointsOnPolygons > Graph.MAX_VERTICES) return;
+            if (Children.Count > 2) ClearAll();
 
             double D = Math.Min(ActualHeight, ActualWidth);
             double rmin, rmax, h;
-            if (m == 1)
+            if (nPolygons == 1)
             {
                 rmin = 0.4 * D;
                 rmax = rmin + 0.5;
@@ -84,35 +74,113 @@ namespace Cayley
             {
                 rmin = 0.2 * D;
                 rmax = 0.4 * D;
-                h = (rmax - rmin) / (m - 1);
+                h = (rmax - rmin) / (nPolygons - 1);
             }
 
             double x, y, r = rmin;
             while (r < rmax + 0.1)
             {
-                for (int i = 0; i < n; i++)
+                for (int i = 0; i < nPointsOnPolygons; i++)
                 {
-                    x = ActualWidth / 2 + r * Math.Cos(2 * Math.PI * i / n);
-                    y = ActualHeight / 2 + r * Math.Sin(2 * Math.PI * i / n);
+                    x = ActualWidth / 2 + r * Math.Cos(2 * Math.PI * i / nPointsOnPolygons);
+                    y = ActualHeight / 2 + r * Math.Sin(2 * Math.PI * i / nPointsOnPolygons);
                     AddRemovePoint(new Point(x, y));
                 }
                 r += h;
             }
         }
 
+        /// <summary>
+        /// This handles the right click, passes immediately to the other overload
+        /// </summary>
+        public void AddRemovePoint(object sender, MouseButtonEventArgs e)
+        {
+            AddRemovePoint(e.GetPosition(this));
+        }
+
+        /// <summary>
+        /// Adds or removes a point at a Point
+        /// </summary>
+        public void AddRemovePoint(Point pos)
+        {
+            if (nearbyVertex != -1)
+            {
+                // Remove point
+                previewPoint.Visibility = Visibility.Hidden;
+                Point q = vertices[nearbyVertex];
+
+                // First, remove from the visual tree
+                int i;
+                for (i = 2; i < Children.Count; i++)
+                {
+                    Ellipse e = Children[i] as Ellipse;
+                    if (e != null && GetLeft(e) + 4 == q.X && GetTop(e) + 4 == q.Y)
+                    {
+                        Children.Remove(e);
+                        break;
+                    }
+                }
+                for (i = 2; i < Children.Count; i++)
+                {
+                    Line l = Children[i] as Line;
+                    if (l != null && ((l.X1 == q.X && l.Y1 == q.Y) || (l.X2 == q.X && l.Y2 == q.Y)))
+                    {
+                        Children.RemoveRange(i, 3);
+                        i--;
+                    }
+                }
+                for (i = nearbyVertex; i < graph.Order - 1; i++)
+                {
+                    vertices[i] = vertices[i + 1];
+                }
+                vertices[graph.Order - 1] = new Point();
+
+                // Send call to graph to remove from its data
+                bool[] colorsKept = graph.RemovePoint(nearbyVertex);
+                
+                // Fix the colors array
+                int j = 0;
+                Brush[] newColors = new Brush[Graph.MAX_GENERATORS];
+                for (i = 0; i < colorsKept.Length; i++)
+                {
+                    if (colorsKept[i])
+                    {
+                        newColors[j++] = colors[i];
+                    }
+                }
+                colors = newColors;
+            }
+            else if (graph.Order < Graph.MAX_VERTICES)
+            {
+                // Add point
+                Ellipse newPoint = new Ellipse() { Width = 8, Height = 8, Fill = Brushes.Black };
+                SetZIndex(newPoint, 2);
+                SetLeft(newPoint, pos.X - 4);
+                SetTop(newPoint, pos.Y - 4);
+                Children.Add(newPoint);
+
+                vertices[graph.Order] = pos;
+                graph.AddPoint();
+            }
+        }
+
+        /// <summary>
+        /// Event handler for left click. If applicable, it begins a line at the nearby vertex.
+        /// </summary>
         private void StartLine(object sender, MouseButtonEventArgs e)
         {
-            if (nearbyVertex == -1)
-            {
-                return;
-            }
+            if (nearbyVertex == -1) return;
 
             focusedVertex = nearbyVertex;
             previewLine.X1 = vertices[focusedVertex].X;
             previewLine.Y1 = vertices[focusedVertex].Y;
         }
 
-        // This is really long. Tons of functionality is crammed here. Oops.
+        /// <summary>
+        /// Event handler for left click release. It draws a line and removes conflicting lines
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void EndLine(object sender, MouseButtonEventArgs e)
         {
             previewLine.Visibility = Visibility.Hidden;
@@ -125,7 +193,7 @@ namespace Cayley
 
             Point start = vertices[focusedVertex];
             Point end = vertices[nearbyVertex];
-            graph.AddEdge(focusedVertex, nearbyVertex, edgeColor);
+            AddEdgeToGraph(focusedVertex, nearbyVertex, edgeColor);
 
             Line newLine = null, arrowLine1 = null, arrowLine2 = null;
             bool startMatch, endMatch;
@@ -196,62 +264,20 @@ namespace Cayley
             focusedVertex = -1;
         }
 
-        // This handles the click, passes immediately to the other overload
-        public void AddRemovePoint(object sender, MouseButtonEventArgs e)
+        /// <summary>
+        /// Calls the graph to add an edge
+        /// </summary>
+        public void AddEdgeToGraph(int start, int end, Brush color)
         {
-            AddRemovePoint(e.GetPosition(this));
+            int j;
+            for (j = 0; colors[j] != color && j < graph.Degree; j++) ;
+            if (j == graph.Degree) colors[graph.Degree] = color;
+            graph.AddEdge(start, end, j);
         }
 
-        // Adds a point
-        public void AddRemovePoint(Point p)
-        {
-            if (nearbyVertex != -1)
-            {
-                previewPoint.Visibility = Visibility.Hidden;
-                Point q = vertices[nearbyVertex];
-
-                for (int i = 2; i < Children.Count; i++)
-                {
-                    Ellipse e = Children[i] as Ellipse;
-                    if (e != null && GetLeft(e) + 4 == q.X && GetTop(e) + 4 == q.Y)
-                    {
-                        Children.Remove(e);
-                        break;
-                    }
-                }
-
-                for (int i = 2; i < Children.Count; i++)
-                {
-                    Line l = Children[i] as Line;
-                    if (l != null && ((l.X1 == q.X && l.Y1 == q.Y) || (l.X2 == q.X && l.Y2 == q.Y)))
-                    {
-                        Children.RemoveRange(i, 3);
-                        i--;
-                    }
-                }
-
-                // This also decrements graph.Order
-                graph.RemovePoint(nearbyVertex);
-
-                for (int i = nearbyVertex; i < graph.Order; i++)
-                {
-                    vertices[i] = vertices[i + 1];
-                }
-                vertices[graph.Order] = new Point();
-            }
-            else if (graph.Order < Graph.MAX_VERTICES)
-            {
-                Ellipse newPoint = new Ellipse() { Width = 8, Height = 8, Fill = Brushes.Black };
-                SetZIndex(newPoint, 2);
-                SetLeft(newPoint, p.X - 4);
-                SetTop(newPoint, p.Y - 4);
-                Children.Add(newPoint);
-
-                vertices[graph.Order++] = p;
-            }
-        }
-
-        // Updates the index of the vertex closest to p (and draws preview shapes)
+        /// <summary>
+        /// When the mouse moves around we need to know where the nearby vertex is and whether to draw preview shapes.
+        /// </summary>
         private void DrawPreviewShapes(object sender, MouseEventArgs e)
         {
             int minidx = -1;
@@ -278,6 +304,7 @@ namespace Cayley
             previewColor.Opacity = 0.5;
 
             // Draw preview point and preview line
+            // The preview point will only be shown if the mouse is near a vertex.
             if (nearbyVertex != -1)
             {
                 previewPoint.Fill = previewColor;
@@ -290,6 +317,7 @@ namespace Cayley
                 previewPoint.Visibility = Visibility.Hidden;
             }
 
+            // The preview line will only be shown if the mouse is down and another vertex is focused
             if (focusedVertex != -1)
             {
                 previewLine.Stroke = previewColor;
@@ -313,9 +341,13 @@ namespace Cayley
             }
         }
 
+        /// <summary>
+        /// Remove all elements from the Canvas (except the preview shapes)
+        /// </summary>
         public void ClearAll()
         {
             Children.RemoveRange(2, Children.Count - 2);
+            colors = new Brush[Graph.MAX_GENERATORS];
             graph.ClearAll();
         }
     }

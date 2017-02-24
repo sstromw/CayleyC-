@@ -11,11 +11,12 @@ namespace Cayley
 
         private int[,] outEdges;
         private int[,] inEdges;
-        private Brush[] colors;
         private int order;
         private int degree;
 
-        public Graph()
+        public Graph() : this(0) { }
+
+        public Graph(int order) 
         {
             outEdges = new int[MAX_VERTICES, MAX_GENERATORS];
             inEdges = new int[MAX_VERTICES, MAX_GENERATORS];
@@ -28,80 +29,44 @@ namespace Cayley
                 }
             }
 
-            colors = new Brush[MAX_GENERATORS];
-            order = 0;
+            this.order = order;
             degree = 0;
         }
 
-        public int[,] OutEdges
+        public int[,] OutEdges { get { return outEdges; } }
+        public int[,] InEdges { get { return inEdges; } }
+        public int Degree { get { return degree; } }
+        public int Order { get { return order; } }
+
+        public void AddEdge(int start, int end, int color)
         {
-            get { return outEdges; }
-            set { OutEdges = value; }
-        }
-
-        public int[,] InEdges
-        {
-            get { return inEdges; }
-            set { InEdges = value; }
-        }
-
-        public Brush[] Colors
-        {
-            get { return colors; }
-            set { colors = value; }
-        }
-
-        public int Order
-        {
-            get { return order; }
-            set { order = value; }
-        }
-
-        public int Degree
-        {
-            get { return degree; }
-            set { degree = value; }
-        }
-
-        internal void ClearAll()
-        {
-            for (int i = 0; i < MAX_VERTICES; i++)
-            {
-                for (int j = 0; j < MAX_GENERATORS; j++)
-                {
-                    outEdges[i, j] = -1;
-                    inEdges[i, j] = -1;
-                }
-            }
-
-            colors = new Brush[MAX_GENERATORS];
-            order = 0;
-            degree = 0;
-        }
-
-        public void AddEdge(int start, int end, Brush color)
-        {
-            int j;
-            for (j = 0; colors[j] != color && j < degree; j++);
-            if (j == degree)
-            {
-                colors[degree++] = color;
-            }
-
+            if (color >= degree) degree++;
             for (int i = 0; i < order; i++)
             {
-                if (outEdges[i, j] == end)
+                if (outEdges[i, color] == end)
                 {
-                    inEdges[end, j] = -1;
-                    outEdges[i, j] = -1;
+                    inEdges[end, color] = -1;
+                    outEdges[i, color] = -1;
                 }
             }
 
-            outEdges[start, j] = end;
-            inEdges[end, j] = start;
+            outEdges[start, color] = end;
+            inEdges[end, color] = start;
         }
 
-        public void RemovePoint(int point)
+        /// <summary>
+        /// Yeah this only exists for one call in GraphCanvas. I want Order to be read only.
+        /// </summary>
+        public void AddPoint()
+        {
+            order++;
+        }
+
+        /// <summary>
+        /// Removes a point. It returns a boolean list of which colors were removed.
+        /// </summary>
+        /// <param name="point"></param>
+        public bool[] RemovePoint(int point)
         {
             for (int i = point; i < order - 1; i++)
             {
@@ -119,7 +84,7 @@ namespace Cayley
 
             order--;
 
-            bool[] count = new bool[degree];
+            bool[] colorsKept = new bool[degree];
             for (int i = 0; i < order; i++)
             {
                 for (int j = 0; j < degree; j++)
@@ -130,26 +95,24 @@ namespace Cayley
                     if (outEdges[i, j] == point) outEdges[i, j] = -1;
                     else if (outEdges[i, j] > point) outEdges[i, j]--;
 
-                    if (!count[j] && (inEdges[i, j] != -1 || outEdges[i, j] != -1)) count[j] = true;
+                    if (inEdges[i, j] != -1 || outEdges[i, j] != -1) colorsKept[j] = true;
                 }
             }
 
             for (int i = 0; i < degree; i++)
             {
-                if (!count[i])
+                if (!colorsKept[i])
                 {
                     degree--;
                     for (int j = i; j < degree; j++)
                     {
-                        colors[i] = colors[i + 1];
                         for (int k = 0; k < order; k++)
                         {
                             inEdges[k, j] = inEdges[k, j + 1];
                             outEdges[k, j] = outEdges[k, j + 1];
                         }
                     }
-
-                    colors[degree] = null;
+                    
                     for (int k = 0; k < order; k++)
                     {
                         inEdges[k, degree] = -1;
@@ -157,6 +120,8 @@ namespace Cayley
                     }
                 }
             }
+
+            return colorsKept;
         }
 
         public Tuple<int[], int[]> BFS(int start)
@@ -242,6 +207,21 @@ namespace Cayley
             }
 
             return new Group(this, refer);
+        }
+
+        public void ClearAll()
+        {
+            for (int i = 0; i < MAX_VERTICES; i++)
+            {
+                for (int j = 0; j < MAX_GENERATORS; j++)
+                {
+                    outEdges[i, j] = -1;
+                    inEdges[i, j] = -1;
+                }
+            }
+
+            order = 0;
+            degree = 0;
         }
     }
 }

@@ -1,6 +1,4 @@
-﻿//#define RECORD_DATA
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows;
@@ -57,7 +55,7 @@ namespace Cayley
             if (G != null)
             {
                 button.Background = Brushes.Green;
-                display.Text = G.GroupName;
+                display.Text = GroupDescriptions.Descriptions[G.GroupString];
 
 #if DEBUG
                 if (G.GroupID != -1 && !data.IsGroupFound(G.Order, G.GroupID))
