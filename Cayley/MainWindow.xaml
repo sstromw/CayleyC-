@@ -3,20 +3,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:debug="debug-mode"
+        xmlns:save="save-mode"
         xmlns:local="clr-namespace:Cayley"
         mc:Ignorable="d mc"
         Title="Graph Drawer" Width="1366" Height="768">
     <Grid>
         <Grid.Resources>
-            <!--<mc:AlternateContent>
-                <mc:Choice Requires="debug">
-                    <Visibility x:Key="foundButtonVisibility">Visible</Visibility>
-                </mc:Choice>
-                <mc:Fallback>
-                    <Visibility x:Key="foundButtonVisibility">Hidden</Visibility>
-                </mc:Fallback>
-            </mc:AlternateContent>-->
             <Style TargetType="{x:Type Button}">
                 <Setter Property="OverridesDefaultStyle" Value="True"/>
                 <Setter Property="Margin" Value="5"/>
@@ -72,26 +64,33 @@
         </Grid>
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
-                <RowDefinition Height="100"/>
-                <RowDefinition Height="200"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="40"/>
+                <RowDefinition Height="100"/> <!-- Color buttons -->
+                <RowDefinition Height="200"/> <!-- Point placer controls -->
+                <RowDefinition Height="*"/> <!-- Check button -->
+                <RowDefinition Height="*"/> <!-- Found button (only visible on some builds, hidden otherwise) -->
+                <RowDefinition Height="*"/> <!-- Sweet, sweet whitespace -->
+                <RowDefinition Height="40"/> <!-- Quit button -->
             </Grid.RowDefinitions>
             <Grid Grid.Row="0">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Button Grid.Row="0" Grid.Column="0" Background="Red" Click="SetRed"></Button>
-                <Button Grid.Row="0" Grid.Column="1" Background="Blue" Click="SetBlue"></Button>
-                <Button Grid.Row="1" Grid.Column="0" Background="Green" Click="SetGreen"></Button>
-                <Button Grid.Row="1" Grid.Column="1" Background="Orange" Click="SetOrange"></Button>
-                <Button Height="40" Width="40" Margin="30" Background="Black" Click="SetBlack" Grid.ColumnSpan="2" Grid.RowSpan="2"/>
+                <Button Margin="2,2,2,2" Grid.Row="0" Grid.Column="0" Background="Red" Click="SetRed"/>
+                <Button Margin="2,2,2,2" Grid.Row="0" Grid.Column="1" Background="Blue" Click="SetBlue"/>
+                <Button Margin="2,2,2,2" Grid.Row="0" Grid.Column="2" Background="Green" Click="SetGreen"/>
+                <Button Margin="2,2,2,2" Grid.Row="1" Grid.Column="0" Background="Magenta" Click="SetMagenta"/>
+                <Button Margin="2,2,2,2" Grid.Row="1" Grid.Column="1" Background="Yellow" Click="SetYellow"/>
+                <Button Margin="2,2,2,2" Grid.Row="1" Grid.Column="2" Background="Cyan" Click="SetCyan"/>
+                <Button Margin="2,2,2,2" Grid.Row="2" Grid.Column="0" Background="Black" Click="SetBlack"/>
+                <Button Margin="2,2,2,2" Grid.Row="2" Grid.Column="1" Background="Gray" Click="SetGray"/>
+                <Button Margin="2,2,2,2" Grid.Row="2" Grid.Column="2" Background="Brown" Click="SetBrown"/>
             </Grid>
             <Grid Grid.Row="1">
                 <Grid.RowDefinitions>
@@ -102,13 +101,13 @@
                 </Grid.RowDefinitions>
                 <Button Grid.Row="0" Click="PointsButton_Click">Clear/Form</Button>
                 <StackPanel Orientation="Horizontal" Grid.Row="1">
-                    <Button x:Name="cmdUp_m" x:FieldModifier="private" Margin="5,5,0,5" Content="˄" Width="20" Click="cmdUp_Click_m"/>
-                    <Button x:Name="cmdDown_m" x:FieldModifier="private" Margin="0,5,0,5"  Content="˅" Width="20" Click="cmdDown_Click_m"/>
+                    <Button x:Name="cmdUp_m" x:FieldModifier="private" Margin="5,5,0,5" Content="˄" Width="30" Click="cmdUp_Click_m"/>
+                    <Button x:Name="cmdDown_m" x:FieldModifier="private" Margin="0,5,0,5"  Content="˅" Width="30" Click="cmdDown_Click_m"/>
                     <TextBlock x:Name="txt_m" x:FieldModifier="private" Margin="5,5,0,5" Width="50" Text="0"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Grid.Row="2">
-                    <Button x:Name="cmdUp_n" x:FieldModifier="private" Margin="5,5,0,5" Content="˄" Width="20" Click="cmdUp_Click_n"/>
-                    <Button x:Name="cmdDown_n" x:FieldModifier="private" Margin="0,5,0,5"  Content="˅" Width="20" Click="cmdDown_Click_n"/>
+                    <Button x:Name="cmdUp_n" x:FieldModifier="private" Margin="5,5,0,5" Content="˄" Width="30" Click="cmdUp_Click_n"/>
+                    <Button x:Name="cmdDown_n" x:FieldModifier="private" Margin="0,5,0,5"  Content="˅" Width="30" Click="cmdDown_Click_n"/>
                     <TextBlock x:Name="txt_n" x:FieldModifier="private" Margin="5,5,0,5" Width="50" Text="0"/>
                 </StackPanel>
                 <Button Grid.Row="3" Name="clearButton" Click="ClearButton_Click">Clear</Button>
@@ -117,7 +116,7 @@
             <Button Grid.Row="3" Name="foundButton" MouseEnter="FoundButton_Enter" MouseLeave="FoundButton_Leave" MouseWheel="FoundButton_MouseWheel">
                 <Button.Content>Found</Button.Content>
                 <mc:AlternateContent>
-                    <mc:Choice Requires="debug">
+                    <mc:Choice Requires="save">
                         <Button.Visibility>Visible</Button.Visibility>
                     </mc:Choice>
                     <mc:Fallback>
@@ -125,7 +124,7 @@
                     </mc:Fallback>
                 </mc:AlternateContent>
             </Button>
-            <Button Grid.Row="4" Name="quitButton" Click="QuitButton_Click">Quit</Button>
+            <Button Grid.Row="5" Name="quitButton" Click="QuitButton_Click">Quit</Button>
         </Grid>
     </Grid>
 </Window>

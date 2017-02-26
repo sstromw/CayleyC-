@@ -8,17 +8,17 @@ using System.Windows.Markup;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("TestGraphDraw")]
+[assembly: AssemblyTitle("Cayley")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("TestGraphDraw")]
+[assembly: AssemblyProduct("Cayley")]
 [assembly: AssemblyCopyright("Copyright ©  2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-#if DEBUG
-[assembly: XmlnsDefinition( "debug-mode", "Cayley" )]
+#if SAVE_DATA
+[assembly: XmlnsDefinition( "save-mode", "Cayley" )]
 #endif
 
 // Setting ComVisible to false makes the types in this assembly not visible 

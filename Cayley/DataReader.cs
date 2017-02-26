@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Cayley
 {
-#if DEBUG
+#if SAVE_DATA
     // I really gotta make this class better
     class DataReader
     {

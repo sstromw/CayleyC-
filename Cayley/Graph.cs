@@ -6,8 +6,8 @@ namespace Cayley
 {
     public class Graph
     {
-        public const int MAX_VERTICES = 63;
-        public const int MAX_GENERATORS = 5;
+        public const int MAX_VERTICES = 255;
+        public const int MAX_GENERATORS = 9;
 
         private int[,] outEdges;
         private int[,] inEdges;
