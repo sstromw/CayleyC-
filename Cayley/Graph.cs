@@ -40,6 +40,11 @@ namespace Cayley
 
         public void AddEdge(int start, int end, int color)
         {
+            if (start == end)
+            {
+                throw new Exception("I don't think this should happen");
+            }
+
             if (color >= degree) degree++;
             for (int i = 0; i < order; i++)
             {
@@ -124,6 +129,11 @@ namespace Cayley
             return colorsKept;
         }
 
+        /// <summary>
+        /// Returns a pair of arrays. The first contains the color of the edge from a node's parent to it. The second contains the order at which the nodes were found.
+        /// </summary>
+        /// <param name="start"></param>
+        /// <returns></returns>
         public Tuple<int[], int[]> BFS(int start)
         {
             int[] parents = new int[order];

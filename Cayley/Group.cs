@@ -102,10 +102,9 @@ namespace Cayley
         /// </summary>
         private int pow(int element, int exponent)
         {
+            exponent = exponent % orders[element];
             if (exponent < 0) { element = inv[element]; exponent = -exponent; }
             else if (exponent == 0) return 0;
-
-            exponent = exponent % orders[element];
 
             int t = 0;
             while (exponent > 1)
@@ -208,30 +207,72 @@ namespace Cayley
             return elms.ToArray();
         }
 
+        /* Broken */
+#if false
         /// <summary>
-        /// UNFINISHED (and frankly I haven't found a use yet)
+        /// Get a generated subgroup
+        /// </summary>
+        private int[] GetGeneratedSubgroup(int[] generators)
+        {
+            List<int> subgroup = new List<int>(generators);
+            bool[] inSubgroup = new bool[graph.Order];
+            foreach (int i in generators) inSubgroup[i] = true;
+            foreach (int h in subgroup)
+            {
+                foreach (int k in subgroup)
+                {
+                    if (!inSubgroup[op[h,k]])
+                    {
+                        subgroup.Add(op[h, k]);
+                        inSubgroup[op[h, k]] = true;
+                    }
+                    if (h == k) break;
+                }
+            }
+
+            return subgroup.ToArray();
+        }
+
+        /// <summary>
+        /// I think it works.
         /// </summary>
         /// <param name="elements">The elements in the subgroup</param>
         /// <returns>Returns a pair (order, id) of the group</returns>
         private string GetSubgroup(int[] elements)
         {
-            // TODO this is tricky
-            /* 
-             * Strat is this:
-             * 1. Put the identity in a set H
-             * 2. Put the first element not in H and all of its powers in H.
-             * 3. Repeat.
-             * 4. Maintain a graph all the while
-            */
-
             int n = elements.Length;
             if (n == graph.Order) return groupDescription;
-            else if (n == 1) return "(1, 0)";
+            else if (n == 1 && elements[0] == 0) return "(1, 0)";
+            else if (n == 1)
+            {
+                throw new Exception("Not a subgroup");
+            }
 
             Graph G = new Graph(n);
+            bool[] connected = new bool[n];
+            for (int i = 1, color = 0; i < n; i++)
+            {
+                if (!connected[i])
+                {
+                    for (int j = 0; j < n; j++)
+                    {
+                        int idx = Array.FindIndex(elements, x => x == op[elements[i], elements[j]]);
+                        if (idx == -1)
+                        {
+                            throw new Exception("Not a subgroup");
+                        }
+                        G.AddEdge(j, idx, color);
+                    }
+
+                    Tuple<int[], int[]> generated = G.BFS(0);
+                    for (int j = 0; j < n; j++) connected[j] = generated.Item1[j] != -1;
+                    color++;
+                }
+            }
 
             return G.ToCayleyGraph().GroupDescription;
         }
+#endif
 
         /// <summary>
         /// Identifies the group and gives it the id (groupID) and description (groupDescription)
@@ -241,19 +282,16 @@ namespace Cayley
             // The order sequence divides the groups into small classes.
             int[] seq = new int[divisors.Length];
             for (int i = 0; i < divisors.Length; i++) seq[i] = orders.Count(x => x == divisors[i]);
-
-            #region Decision tree from your nightmares. Abandon all hope ye who enter here.
-            #region Seriously, I'll have good style from now on but don't make me go back in there.
             
             // "Layer 0"
             if (seq[divisors.Length - 1] > 0) { groupID = 1; groupDescription = "Z" + graph.Order; return; }
-            else if (IsDihedral()) { groupID = 0; groupDescription = (graph.Order == 6 ? "S" : "D") + graph.Order / 2; return; } // Dn (or S3)
+            else if (graph.Order > 6 && IsDihedral()) { groupID = 0; groupDescription = "D" + graph.Order / 2; return; } // Dn (or S3)
 
             // The decision tree (mostly) looks at order sequence followed by power statistics.
             // But the first four cases look for general classes of groups. It's a little bit of Hölder's classification.
             // This is "Layer 1" http://www.icm.tu-bs.de/ag_algebra/software/small/README
-            // But we only check cases p^2, pq, and p^3. The other cases don't agree with the rest of the design.
-            
+            // But we only check cases p^2, pq, p^3, and abelian p^4. The other cases don't agree with the rest of the design.
+
             if (factors.Length == 2) // A001358
             {
                 int p = factors[0], q = factors[1], n;
@@ -262,13 +300,13 @@ namespace Cayley
                 else if (factors[1] % factors[0] == 1) { groupID = 3; for (n = 2; DiscreteMath.ModPow(n, p, q) != 1; n++) ; groupDescription = string.Format("<x,y | x^{0} = y^{1} = 1, yxy^-1 = x^{2}>", q, p, n); } // <x,y | x^q = y^p = 1, yxy^-1 = x^n> "q:p"
                 return;
             }
-            else if (factors.Length == 3 && factors[0] == factors[1] && factors[0] == factors[2]) // A014612
+            else if (factors.Length == 3 && factors[0] == factors[1] && factors[0] == factors[2])
             {
                 int p = factors[0];
-                
+
                 if (isAbelian)
                 {
-                    if (seq[1] != graph.Order - 1) { groupID = 2; groupDescription = string.Format("Z{0} x Z{1}", p*p, p); } // Z(p^2) x Zp
+                    if (seq[1] != graph.Order - 1) { groupID = 2; groupDescription = string.Format("Z{0} x Z{1}", p * p, p); } // Z(p^2) x Zp
                     else { groupID = 3; groupDescription = string.Format("Z{0}^3", p); } // Zp^3
                 }
                 else // Extra special
@@ -365,7 +403,7 @@ namespace Cayley
                 if (seq[1] == 5) { groupID = 2; groupDescription = "D5 x Z3"; return; }
                 else { groupID = 3; groupDescription = "S3 x Z5"; return; }
             }
-            else if (graph.Order == 32)
+            else if (graph.Order == 32) // This has "problem groups" that have identical order sequences, power sequences, centers, and derived subgroups
             {
                 // Stretch goal
                 if (seq[1] == 31) { groupID = 2; groupDescription = "Z2^5"; return; }
@@ -376,41 +414,55 @@ namespace Cayley
                     else
                     {
                         if (CountPowers(2) == 2) { groupID = 5; groupDescription = "<w,x,y,z | w^2 = x^2 = y^2 = z^2 = (wx)^4 = (yxw)^2 = 1, wy = yw, wz = zw, xz = zx, (xw)^2 = (yz)^2>"; return; } // 49
-                        // These two have the same order sequence (1, 19, 12, 0, 0, 0), power statistics (32, 4, 1, 1, 1, 1), center (Z2^2), and derived subgroup (Z2^2)
-                        // 34 -- D(Z4^2)
-                        // 27 -- <x,y,z | x^2 = y^2 = z^2 = (zy)^2 = (yxzx)^2 = (yx)^4 = (zx)^4 = (zxy)^4 = 1>
+#if false
+                        // Gotta distinguish between 32,27 (Z2^4 : Z2) and 32,34 (Z4^2 : Z2) and this thing here is no good
+                        for (int i = 0; i < graph.Order; i++) // Ugh O(n^3)
+                        {
+                            if (orders[i] != 4) continue;
+                            for (int j = 0; j < i; j++)
+                            {
+                                if (orders[j] != 2) continue;
+                                for (int k = 0; k < j; k++)
+                                {
+                                    if (op[i,j] == op[j,i] && op[i,k] == op[k,i] && op[j,k] == op[k,j]) { groupID = 6; groupDescription = "<x,y,z | x^2 = y^2 = z^2 = (zy)^2 = (yxzx)^2 = (yx)^4 = (zx)^4 = (zxy)^4 = 1>"; return; }
+                                }
+                            }
+                        }
+                        groupID = 7; groupDescription = "D(Z4^2)"; return;
+#endif
                     }
                 }
                 else if (seq[1] == 15)
                 {
-                    if (seq[2] == 8) { groupID = 8; groupDescription = "<x,y,z | x^8 = y^2 = z^2 = 1, yxy^-1 = x^7, zxz^-1 = x^5>"; return; } // 43
+                    if (seq[2] == 8) { groupID = 8; groupDescription = "<x,y,z | x^8 = y^2 = z^2 = 1, yxy^-1 = x^7, zxz^-1 = x^5>"; } // 43
                     else
                     {
-                        if (isAbelian) { groupID = 9; groupDescription = "Z4 x Z2^3"; return; }
                         int[] Z = GetCenter(); // The centers of the next groups are Z2^2, Z2 x Z4, and Z2^3
-                        if (Z.Length == 4) { groupID = 10; groupDescription = "<x,y,z | x^2 = y^4 = z^2 = (xy)^2 = (zx)^4 = 1, yz = zy, xy^2 = y^2x>"; return; } // 28
-                        for (int i = 1; i < 5; i++)
-                        {
-                            if (orders[Z[i]] == 4) { groupID = 11; groupDescription = "Z2 x <x,y,z | x^4 = y^2 = (yx)^2 = 1, x^2 = z^2, xz = zx, yz = zy>"; return; } // 48
-                        }
-                        groupID = 12; groupDescription = "Z2 x <x,y,z | x^4 = y^2 = z^2 = 1, xy = yx, yz = zy, zx = xyz>"; return; // 22
+                        if (isAbelian) { groupID = 9; groupDescription = "Z4 x Z2^3"; }
+                        if (Z.Length == 4) { groupID = 10; groupDescription = "<x,y,z | x^2 = y^4 = z^2 = (xy)^2 = (zx)^4 = 1, yz = zy, xy^2 = y^2x>"; } // 28
+                        else if (Array.Exists(Z, x => orders[x] == 4)) { groupID = 11; groupDescription = "Z2 x <x,y,z | x^4 = y^2 = (yx)^2 = 1, x^2 = z^2, xz = zx, yz = zy>"; } // 48
+                        else { groupID = 12; groupDescription = "Z2 x <x,y,z | x^4 = y^2 = z^2 = 1, xy = yx, yz = zy, zx = xyz>"; } // 22
                     }
+                    return;
                 }
                 else if (seq[1] == 11)
                 {
                     if (seq[2] == 20)
                     {
-                        //  -- D8 x Z4
-                        //  -- <x,y | x^4 = y^2 = (yxy^-1x^-1)^2 = (yx)^4 = (x^2y)^4 = 1>
-                        //  -- <x,y,z | x^2 = y^2 = z^4 = (xz)^4 = (z^2x)^2 = 1, yz = zy, (yx)^2 = z^2>
-                        //  -- <x,y,z | x^2 = y^4 = z^4 = 1, yz = zy, xz^2 = z^2x, xy^2 = y^2x, yzy = xzx, xy = z^2yx>
-                        //  -- <w,x,y,z | w^2 = x^2 = y^4 = (xy)^2 = y^2z^2 = 1, wy = yw, wz = zw, xzx = z, zyz = y, ywy = xwx>
+                        int squares = CountPowers(2);
+                        if (squares == 6) { groupID = 13; groupDescription = "<x,y | x^4 = y^2 = (yxy^-1x^-1)^2 = (yx)^4 = (x^2y)^4 = 1>"; return; } // 6
+                        else if (squares == 2) { groupID = 14; groupDescription = "<w,x,y,z | w^2 = x^2 = y^4 = (xy)^2 = y^2z^2 = 1, wy = yw, wz = zw, xzx = z, zyz = y, ywy = xwx>"; return; } // 50
+                        else if (GetCenter().Length == 8) { groupID = 15; groupDescription = "D8 x Z4"; return; }
+                        // Problem groups
+                        // 30 -- <x,y,z | x^2 = y^2 = z^4 = (xz)^4 = (z^2x)^2 = 1, yz = zy, (yx)^2 = z^2>
+                        // 31 -- <x,y,z | x^2 = y^4 = z^4 = 1, yz = zy, xyx^-1y^1 = z^2, xzx^-1z^-1 = y^2>
                     }
                     else if (seq[2] == 12)
                     {
-                        // 40 -- Z2 x <x,y | x^8 = y^2 = 1, yxy^-1 = x^3>
-                        // 9 -- <x,y | x^4 = y^2 = (xyx)^2 = (yx^-1yxyxyx)^2 = (xyx^-1y^-1)^4 = 1>
-                        // 42 -- <x,y,z | x^2 = y^2 = z^4 = 1, xz = zx, yz = zy, (xy)^4 = z^2>
+                        if (CountPowers(2) == 5) { groupID = 18; groupDescription = "<x,y | x^4 = y^2 = (xyx)^2 = (yx^-1yxyxyx)^2 = (xyx^-1y^-1)^4 = 1>"; } // 9
+                        else if (Array.Exists(GetCenter(), x => orders[x] == 4)) { groupID = 19; groupDescription = "<x,y,z | x^2 = y^2 = z^4 = 1, xz = zx, yz = zy, (xy)^4 = z^2>"; } // 42
+                        else { groupID = 20; groupDescription = "Z2 x <x,y | x^8 = y^2 = 1, yxy^-1 = x^3>"; }
+                        return;
                     }
                     else { groupID = 21; groupDescription = "<x,y | y^2 = (xyx)^2 = (x^-1yxy)^2 = x^8 = 1>"; return; } // 7
                 }
@@ -419,42 +471,48 @@ namespace Cayley
                 {
                     if (seq[2] == 24)
                     {
-                        if (isAbelian) { groupID = 23; groupDescription = "Z4^2 x Z2"; return; }
-                        // 2 -- <x,y,z | x^4 = y^4 = z^2 = 1, xz = zx, yz = zy, xy = zyx>
-                        // 23 -- Z2 x <x,y | x^4 = y^4 = 1, yxy^-1 = x^3>
-                        // 24 -- <x,y,z | x^4 = y^4 = z^2 = 1, xy = yx, xz = zx, zyz^1 = x^2y>
-                        // 29 -- <x,y,z | x^4 = y^4 = z^4 = 1, x^2 = y^2, xy = yx, zxz = x, zyz = y>
-                        // 33 -- <x,y,z | x^4 = y^2 = z^4 = 1, xz = zx, yxy^-1x^-1 = z^2, yzy^-1z^-1 = x^2z^2>
-                        // 47 -- Q8 x Z2^2
+                        int squares = CountPowers(2);
+                        int[] Z = GetCenter();
+                        if (isAbelian) { groupID = 23; groupDescription = "Z4^2 x Z2"; }
+                        else if (squares == 2) { groupID = 24; groupDescription = "Q8 x Z2^2"; }
+                        else if (Z.Length == 8 && squares == 3) { groupID = 25; groupDescription = "Z2 x <x,y | x^4 = y^4 = 1, yxy^-1 = x^3>"; } // 23
+                        else if (Z.Length == 4 && squares == 3) { groupID = 26; groupDescription = "<x,y,z | x^4 = y^4 = z^4 = 1, x^2 = y^2, xy = yx, zxz = x, zyz = y>"; } // 29
+                        else if (Z.Length == 4) { groupID = 27; groupDescription = "<x,y,z | x^4 = y^2 = z^4 = 1, xz = zx, xy = z^2yx, zx^2yz = y>"; } // 33
+                        else if (Array.Exists(Z, x => orders[x] == 4)) { groupID = 28; groupDescription = "<x,y,z | x^4 = y^4 = z^2 = 1, xy = yx, xz = zx, zyz^1 = x^2y>"; } // 24
+                        else { groupID = 29; groupDescription = "<x,y,z | x^4 = y^4 = z^2 = 1, xz = zx, yz = zy, xy = zyx>"; }
                     }
                     else if (seq[2] == 16)
                     {
                         // Maybe find another representation of Z4 Wr Z2. Wreath products are too awesome
-                        if (graph.Degree == 2 || GetCenter().Length == 4) { groupID = 30; groupDescription = "Z4 Wr Z2"; return; }
-                        else { groupID = 31; groupDescription = "<x,y,z | x^2 = z^2 = y^2(zx)^2 = 1, yz = zy, xy^2x = y^2, (xy^-1)^3 = y^-1x>"; return; } // 44
+                        if (graph.Degree == 2 || GetCenter().Length == 4) { groupID = 30; groupDescription = "Z4 Wr Z2"; }
+                        else { groupID = 31; groupDescription = "<x,y,z | x^2 = z^2 = y^2(zx)^2 = 1, yz = zy, xy^2x = y^2, (xy^-1)^3 = y^-1x>"; } // 44
                     }
                     else
                     {
-                        if (isAbelian) { groupID = 32; groupDescription = "Z8 x Z2^ 2"; return; }
-                        //  -- <x,y | x^8 = y^2 = 1, x^2y=yx^2, (xy)^2 = (yx)^2>
-                        //  -- <x,y | x^8 = y^2 = 1, yxy = x^3> x Z2
-                        //  -- <x,y,z | x^8 = y^2 = z^2 = 1, xy = yx, xz = zx, (yz)^2 = x^4>
+                        if (isAbelian) { groupID = 32; groupDescription = "Z8 x Z2^2"; return; }
+                        if (CountPowers(2) == 6) { groupID = 33; groupDescription = "<x,y | x^8 = y^2 = 1, x^2y=yx^2, (xy)^2 = (yx)^2>"; } // 5
+                        if (Array.Exists(GetCenter(), x => orders[x] == 8)) { groupID = 34; groupDescription = "<x,y,z | x^8 = y^2 = z^2 = 1, xy = yx, xz = zx, (yz)^2 = x^4>"; } // 38
+                        else { groupID = 35; groupDescription = "Z2 x <x,y | x^8 = y^2 = 1, yxy = x^3>"; }
                     }
+                    return;
                 }
                 else if (seq[1] == 3)
                 {
                     if (seq[2] == 28)
                     {
-                        // 26 -- Q8 x Z4
+                        if (GetCenter().Length == 8) { groupID = 36; groupDescription = "Q8 x Z4"; return; }
+                        // Problem groups
                         // 32 -- <x,y,z | x^4 = y^4 = x^2z^2 = 1, xyx = y, zy = yz, xy^2 = y^2x>
                         // 35 -- <x,y,z | x^2y^2 = y^4 = z^4 = 1, yxy = zyz = x, yz = zy>
                     }
                     else if (seq[2] == 20)
                     {
-                        //  -- Q16 x Z2
-                        //  -- <x,y | x^4 = y^4 = (x^-1y^2)^2 = (yx^2)^2 = (x^2y^2)^2 = 1, xy = yxyx^3yx>
-                        //  -- <x,y | x^8 = y^4 = 1, yxy^-1 = x^3>
-                        //  -- <x,y | x^8 = y^4 = 1, xyx = y>
+                        int squares = CountPowers(2);
+                        if (squares == 4) { groupID = 39; groupDescription = "Q16 x Z2"; return; }
+                        else if (squares == 6) { groupID = 40; groupDescription = "<x,y | x^8 = y^4 = 1, yxy^-1 = x^3>"; return; } // 13
+                        // Problem groups
+                        // 10 -- <x,y | x^4 = y^4 = (x^-1y^2)^2 = (yx^2)^2 = (x^2y^2)^2 = 1, xy = yxyx^3yx>
+                        // 14 -- <x,y | x^8 = y^4 = 1, xyx^-1 = x^-1>
                     }
                     else if (seq[2] == 12)
                     {
@@ -474,20 +532,81 @@ namespace Cayley
                 }
                 else { groupID = 50; groupDescription = "Q32"; return; }
             }
-            // 36
-            // 40
-            // 42
-            // 44
-            // 45
-            // 48 (!)
-            // 50
+            else if (graph.Order == 36)
+            {
+                if (seq[1] == 19) { groupID = 2; groupDescription = "Z2 x D(Z3^2)"; } // 13
+                else if (seq[1] == 15) { groupID = 3; groupDescription = "S3^2"; }
+                else if (seq[1] == 9) { groupID = 4; groupDescription = ""; } // 9
+                else if (seq[1] == 7) { groupID = 5; groupDescription = ""; } // 12
+                else if (seq[1] == 3)
+                {
+                    if (seq[2] == 26) { groupID = 6; groupDescription = "Z3 x A4"; }
+                    else if (seq[2] == 8) { groupID = 7; groupDescription = "Z6 x Z6"; }
+                    else if (isAbelian) { groupID = 8; groupDescription = "Z18 x Z2"; }
+                    else { groupID = 9; groupDescription = ""; } // 3
+                }
+                else
+                {
+                    if (seq[2] == 2) { groupID = 10; groupDescription = "Dic9"; }
+                    else if (seq[3] == 18) { groupID = 11; groupDescription = ""; } // 7
+                    else if (seq[3] == 6) { groupID = 12; groupDescription = ""; } // 6
+                    else { groupID = 13; groupDescription = ""; } // 8
+                }
+                return;
+            }
+            else if (graph.Order == 40)
+            {
+                if (seq[1] == 23) { groupID = 2; groupDescription = "Z2^2 x D5"; }
+                else if (seq[1] == 13) { groupID = 3; groupDescription = ""; } // 8
+                else if (seq[1] == 11 && seq[2] == 20) { groupID = 4; groupDescription = ""; } // 12
+                else if (seq[1] == 11) { groupID = 5; groupDescription = "Z4 x D5"; }
+                else if (seq[1] == 7) { groupID = 6; groupDescription = "Z10 x Z2^2"; }
+                else if (seq[1] == 5) { groupID = 7; groupDescription = "Z5 x D4"; }
+                else if (seq[1] == 3 && seq[2] == 20) { groupID = 8; groupDescription = ""; } // 7
+                else if (seq[1] == 3) { groupID = 9; groupDescription = "Z20 x Z2"; }
+                else if (seq[2] == 22) { groupID = 10; groupDescription = ""; } // 4
+                else if (seq[2] == 10) { groupID = 11; groupDescription = ""; } // 3
+                else if (seq[2] == 6) { groupID = 12; groupDescription = "Z5 x Q8"; }
+                else { groupID = 13; groupDescription = ""; } // 1
+                return;
+            }
+            else if (graph.Order == 42)
+            {
+                if (seq[1] == 7 && seq[2] == 14) { groupID = 2; groupDescription = ""; } // 1
+                else if (seq[1] == 7) { groupID = 3; groupDescription = "Z3 x D7"; }
+                else if (seq[1] == 3) { groupID = 4; groupDescription = "Z7 x S3"; }
+                else { groupID = 5; groupDescription = ""; } // 2
+                return;
+            }
+            else if (graph.Order == 44)
+            {
+                if (isAbelian) { groupID = 2; groupDescription = "Z22 x Z2"; }
+                else { groupID = 3; groupDescription = "Dic11"; }
+                return;
+            }
+            else if (graph.Order == 45) { groupID = 1; groupDescription = "Z15 x Z3"; return; }
+            else if (graph.Order == 48)
+            {
+                // Really stretch goal (!)
+            }
+            else if (graph.Order == 50)
+            {
+                if (isAbelian) { groupID = 2; groupDescription = "Z10 x Z5"; }
+                else if (seq[1] == 25) { groupID = 3; groupDescription = "D(Z5^2)"; } // 4
+                else { groupID = 4; groupDescription = ""; } // 3
+                return;
+            }
+            else if (graph.Order == 52)
+            {
+                if (isAbelian) { groupID = 2; groupDescription = "Z26 x Z2"; }
+                else if (seq[1] == 13) { groupID = 3; groupDescription = "<x,y | x^13 = y^4 = 1, yxy^-1 = x^5>"; } // 13
+                else { groupID = 4; groupDescription = "Dic13"; }
+                return;
+            }
             // ...
 
             groupID = -1;
             groupDescription = "Can't Identify";
-
-            #endregion
-            #endregion
         }
     }
 }
