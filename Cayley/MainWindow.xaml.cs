@@ -128,15 +128,8 @@ namespace Cayley
 #endif
         }
 
-        private void SetRed(object sender, RoutedEventArgs e) { canvas.EdgeColor = Brushes.Red; }
-        private void SetBlue(object sender, RoutedEventArgs e) { canvas.EdgeColor = Brushes.Blue; }
-        private void SetGreen(object sender, RoutedEventArgs e) { canvas.EdgeColor = Brushes.Green; }
-        private void SetMagenta(object sender, RoutedEventArgs e) { canvas.EdgeColor = Brushes.Magenta; }
-        private void SetYellow(object sender, RoutedEventArgs e) { canvas.EdgeColor = Brushes.Yellow; }
-        private void SetCyan(object sender, RoutedEventArgs e) { canvas.EdgeColor = Brushes.Cyan; }
-        private void SetBlack(object sender, RoutedEventArgs e) { canvas.EdgeColor = Brushes.Black; }
-        private void SetGray(object sender, RoutedEventArgs e) { canvas.EdgeColor = Brushes.Gray; }
-        private void SetBrown(object sender, RoutedEventArgs e) { canvas.EdgeColor = Brushes.Brown; }
+        private void SetColor(object sender, RoutedEventArgs e) { canvas.EdgeColor = ((Button)sender).Background; }
+        private void RemoveColor(object sender, RoutedEventArgs e) { canvas.RemoveColor(((Button)sender).Background); }
 
 #region Number selector
 

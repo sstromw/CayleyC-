@@ -82,15 +82,15 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Button Margin="2,2,2,2" Grid.Row="0" Grid.Column="0" Background="Red" Click="SetRed"/>
-                <Button Margin="2,2,2,2" Grid.Row="0" Grid.Column="1" Background="Blue" Click="SetBlue"/>
-                <Button Margin="2,2,2,2" Grid.Row="0" Grid.Column="2" Background="Green" Click="SetGreen"/>
-                <Button Margin="2,2,2,2" Grid.Row="1" Grid.Column="0" Background="Magenta" Click="SetMagenta"/>
-                <Button Margin="2,2,2,2" Grid.Row="1" Grid.Column="1" Background="Yellow" Click="SetYellow"/>
-                <Button Margin="2,2,2,2" Grid.Row="1" Grid.Column="2" Background="Cyan" Click="SetCyan"/>
-                <Button Margin="2,2,2,2" Grid.Row="2" Grid.Column="0" Background="Black" Click="SetBlack"/>
-                <Button Margin="2,2,2,2" Grid.Row="2" Grid.Column="1" Background="Gray" Click="SetGray"/>
-                <Button Margin="2,2,2,2" Grid.Row="2" Grid.Column="2" Background="Brown" Click="SetBrown"/>
+                <Button Margin="2,2,2,2" Grid.Row="0" Grid.Column="0" Background="Red" Click="SetColor" MouseRightButtonDown="RemoveColor"/>
+                <Button Margin="2,2,2,2" Grid.Row="0" Grid.Column="1" Background="Blue" Click="SetColor" MouseRightButtonDown="RemoveColor"/>
+                <Button Margin="2,2,2,2" Grid.Row="0" Grid.Column="2" Background="Green" Click="SetColor" MouseRightButtonDown="RemoveColor"/>
+                <Button Margin="2,2,2,2" Grid.Row="1" Grid.Column="0" Background="Magenta" Click="SetColor" MouseRightButtonDown="RemoveColor"/>
+                <Button Margin="2,2,2,2" Grid.Row="1" Grid.Column="1" Background="Yellow" Click="SetColor" MouseRightButtonDown="RemoveColor"/>
+                <Button Margin="2,2,2,2" Grid.Row="1" Grid.Column="2" Background="Cyan" Click="SetColor" MouseRightButtonDown="RemoveColor"/>
+                <Button Margin="2,2,2,2" Grid.Row="2" Grid.Column="0" Background="Black" Click="SetColor" MouseRightButtonDown="RemoveColor"/>
+                <Button Margin="2,2,2,2" Grid.Row="2" Grid.Column="1" Background="Gray" Click="SetColor" MouseRightButtonDown="RemoveColor"/>
+                <Button Margin="2,2,2,2" Grid.Row="2" Grid.Column="2" Background="Brown" Click="SetColor" MouseRightButtonDown="RemoveColor"/>
             </Grid>
             <Grid Grid.Row="1">
                 <Grid.RowDefinitions>

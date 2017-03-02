@@ -164,6 +164,27 @@ namespace Cayley
             }
         }
 
+        public void RemoveColor(Brush brush)
+        {
+            int i = 0;
+            for (; i < graph.Degree && colors[i] != brush; i++);
+            if (i != graph.Degree)
+            {
+                graph.RemoveColor(i);
+                for (; i < Graph.MAX_GENERATORS - 1; i++) colors[i] = colors[i + 1];
+
+                for (i = 2; i < Children.Count; i++)
+                {
+                    Line l = Children[i] as Line;
+                    if (l != null && l.Stroke == brush)
+                    {
+                        Children.RemoveRange(i, 3);
+                        i--;
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Event handler for left click. If applicable, it begins a line at the nearby vertex.
         /// </summary>

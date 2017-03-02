@@ -6,7 +6,7 @@ namespace Cayley
 {
     public class Graph
     {
-        public const int MAX_VERTICES = 255;
+        public const int MAX_VERTICES = 63;
         public const int MAX_GENERATORS = 9;
 
         private int[,] outEdges;
@@ -127,6 +127,21 @@ namespace Cayley
             }
 
             return colorsKept;
+        }
+
+        public void RemoveColor(int color)
+        {
+            degree--;
+            for(int i = 0; i < order; i++)
+            {
+                for (int j = color; j < degree; j++)
+                {
+                    outEdges[i, j] = outEdges[i, j + 1];
+                    inEdges[i, j] = inEdges[i, j + 1];
+                }
+                outEdges[i, degree] = -1;
+                inEdges[i, degree] = -1;
+            }
         }
 
         /// <summary>
