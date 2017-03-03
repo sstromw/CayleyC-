@@ -280,7 +280,7 @@ namespace Cayley
             // The order sequence divides the groups into small classes.
             int[] seq = new int[divisors.Length];
             for (int i = 0; i < divisors.Length; i++) seq[i] = orders.Count(x => x == divisors[i]);
-            
+
             // "Layer 0" abelian groups
             if (seq[divisors.Length - 1] > 0) { description = "Z" + graph.Order; }
             else if (isAbelian)
@@ -288,39 +288,36 @@ namespace Cayley
                 // Based on this proof https://groupprops.subwiki.org/wiki/Finite_abelian_groups_with_the_same_order_statistics_are_isomorphic
                 int[] primes = factors.Distinct().ToArray();
                 description = "";
-                
+
                 int[] t = new int[divisors.Length + 1];
-                int i, j, k, partialSum, pPower, count;
+                int i, j, k, m, partialSum, pPower, ratio, lastRatio;
                 foreach (int p in primes)
                 {
-                    i = 0; partialSum = 0; pPower = 1; count = 0;
-                    while (i < divisors.Length)
+                    // Test plz
+                    i = 0; pPower = p; partialSum = 1; ratio = 0; lastRatio = 0;
+                    while (divisors[i] != pPower) i++;
+                    for (; i < divisors.Length;)
                     {
-                        t[count++] = (partialSum += seq[i]);
+                        lastRatio = ratio;
+                        ratio = (partialSum + seq[i]) / partialSum;
+                        partialSum += seq[i];
+
+                        if (pPower > p)
+                        {
+                            m = lastRatio / ratio; j = 0; k = p;
+                            while (m % k == 0) { k *= p; j++; }
+                            if (j == 1) { description += string.Format("Z{0} x ", pPower / p); }
+                            else if (j > 1) { description += string.Format("Z{0}^{1} x ", pPower / p, j); }
+                        }
+
                         pPower *= p;
                         while (i < divisors.Length && divisors[i] != pPower) i++;
                     }
-                    t[count] = t[count - 1];
 
-                    // Check for Z(p^n) and (Zp)^n
-                    int ip = Array.FindIndex(divisors, x => x == p);
-                    if (seq[ip] == p - 1) { description += string.Format("Z{0} x ", pPower / p); }
-                    else if (seq[ip] == pPower - 1) { description += string.Format("Z{0}^{1} x ", p, count); }
-                    else // Rest of the cases
-                    {
-                        for (i = 0; i < count; i++)
-                        {
-                            j = 0;
-                            while (t[i] > 1) { t[i] /= p; j++; }
-                            t[i] = j;
-                        }
-                        for (i = 1; i < count - 1; i++)
-                        {
-                            k = 2 * t[i] - t[i - 1] - t[i + 1];
-                            if (k == 1) { description += string.Format("Z{0} x ", DiscreteMath.Pow(p, i)); }
-                            else if (k > 1) { description += string.Format("Z{0}^{1} x ", DiscreteMath.Pow(p, i), k); }
-                        }
-                    }
+                    m = ratio; j = 0; k = p;
+                    while (m % k == 0) { k *= p; j++; }
+                    if (j == 1) { description += string.Format("Z{0} x ", pPower / p); }
+                    else if (j > 1) { description += string.Format("Z{0}^{1} x ", pPower / p, j); }
                 }
 
                 description = description.Substring(0, description.Length - 3);
@@ -334,7 +331,7 @@ namespace Cayley
             else if (factors.Length == 2) // A001358
             {
                 int p = factors[0], q = factors[1], n;
-                
+
                 if (factors[0] == 2) { description = (graph.Order == 6 ? "S" : "D") + factors[1]; }
                 if (factors[1] % factors[0] == 1) { for (n = 2; DiscreteMath.ModPow(n, p, q) != 1; n++) ; description = string.Format("<x,y | x^{0} = y^{1} = 1, yxy^-1 = x^{2}>", q, p, n); } // <x,y | x^q = y^p = 1, yxy^-1 = x^n> "q:p"
             }
@@ -495,7 +492,6 @@ namespace Cayley
                     {
                         int squares = CountPowers(2);
                         int[] Z = GetCenter();
-                        //if (isAbelian) { groupDescription = "Z4^2 x Z2"; }
                         if (squares == 2) { description = "Q8 x Z2^2"; }
                         else if (Z.Length == 8 && squares == 3) { description = "Z2 x <x,y | x^4 = y^4 = 1, yxy^-1 = x^3>"; } // 23
                         else if (Z.Length == 4 && squares == 3) { description = "<x,y,z | x^4 = y^4 = z^4 = 1, x^2 = y^2, xy = yx, zxz = x, zyz = y>"; } // 29
@@ -511,7 +507,6 @@ namespace Cayley
                     }
                     else
                     {
-                        //if (isAbelian) { groupDescription = "Z8 x Z2^2"; }
                         if (CountPowers(2) == 6) { description = "<x,y | x^8 = y^2 = 1, x^2y=yx^2, (xy)^2 = (yx)^2>"; } // 5
                         else if (Array.Exists(GetCenter(), x => orders[x] == 8)) { description = "<x,y,z | x^8 = y^2 = z^2 = 1, xy = yx, xz = zx, (yz)^2 = x^4>"; } // 38
                         else { description = "Z2 x <x,y | x^8 = y^2 = 1, yxy = x^3>"; }
@@ -537,7 +532,6 @@ namespace Cayley
                     }
                     else if (seq[2] == 12)
                     {
-                        //if (isAbelian) { groupDescription = "Z8 x Z4"; }
                         if (GetCenter().Length == 2) { description = "<x,y,z | x^8 = y^2 = 1, z^2 = x^4, yxy^-1 = x^5, yz = zy, ac = cab>"; } // 8
                         else if (CountPowers(2) == 8) { description = "<x,y | x^8 = y^4 = 1, yxy^-1 = x^5>"; } // 4
                         else { description = "<x,y | x^4 = y^8 = 1, yxy^-1 = x^3>"; } // 12
@@ -552,49 +546,48 @@ namespace Cayley
             {
                 if (seq[1] == 19)
                 {
-                    if (seq[2] == 8) { description = "Z2 x D(Z3^2)"; } // 13
+                    if (seq[2] == 8) { description = "Z2 x D(Z3^2)"; }
                     else { description = "D18"; }
                 }
                 else if (seq[1] == 15) { description = "S3^2"; }
-                else if (seq[1] == 9) { description = "unnamed"; } // 9
-                else if (seq[1] == 7) { description = "unnamed"; } // 12
+                else if (seq[1] == 9) { description = "<x,y,z | x^3 = y^3 = z^4 = (xz^2)^2 = (yz^2)^2 = 1, zxz^-1 = y^-1, zyz^-1 = x>"; } // 9 (this was a fun one)
+                else if (seq[1] == 7) { description = "Z6 x S3"; }
                 else if (seq[1] == 3)
                 {
                     if (seq[2] == 26) { description = "Z3 x A4"; }
-                    else { description = "unnamed"; } // 3
+                    else { description = "<x,y,z | x^9 = y^2 = z^2, yz = zy, xyx^-1 = yz, xzx^-1 = y>"; } // 3
                 }
                 else
                 {
                     if (seq[2] == 2) { description = "Dic9"; }
                     else if (seq[3] == 18) { description = "<x,y,z | x^3 = y^3 = z^4 = 1, xy = yx, zxz^-1 = x^-1, zyz^-1 = y^-1>"; } // 7
-                    else if (seq[3] == 6) { description = "<x,y,z | x^3 = y^4 = z^3 = 1, yxy^-1 = x^-1, xz = zx, yz = zy>"; } // 6
-                    else { description = "unnamed"; } // 8
+                    else { description = "<x,y,z | x^3 = y^4 = z^3 = 1, yxy^-1 = x^-1, xz = zx, yz = zy>"; } // 6
                 }
             }
             else if (graph.Order == 40)
             {
                 if (seq[1] == 23) { description = "Z2^2 x D5"; }
                 else if (seq[1] == 21) { description = "D20"; }
-                else if (seq[1] == 13) { description = "unnamed"; } // 8
-                else if (seq[1] == 11 && seq[2] == 20) { description = "unnamed"; } // 12
+                else if (seq[1] == 13) { description = "unnamed"; } // 8 -- p : Q8 -> Aut Z5, p(i)(x) = 2x, p(j)(x) = 3x ??
+                else if (seq[1] == 11 && seq[2] == 20) { description = "Z2 x <x,y | x^5 = y^4 = 1, yxy^-1 = x^2>"; } // 12
                 else if (seq[1] == 11) { description = "Z4 x D5"; }
                 else if (seq[1] == 5) { description = "Z5 x D4"; }
-                else if (seq[1] == 3 && seq[2] == 20) { description = "unnamed"; } // 7
+                else if (seq[1] == 3 && seq[2] == 20) { description = "Z2 x <x,y | x^5 = y^4 = 1, yxy^-1 = x^-1>"; } // 7
                 else if (seq[2] == 22) { description = "unnamed"; } // 4
-                else if (seq[2] == 10) { description = "unnamed"; } // 3
+                else if (seq[2] == 10) { description = "<x,y | x^5 = y^8 = 1, yxy^-1 = x^2>"; } // 3
                 else if (seq[2] == 6) { description = "Z5 x Q8"; }
-                else { description = "unnamed"; } // 1
+                else { description = "<x,y | x^5 = y^8 = 1, yxy^-1 = x^-1>"; } // 1
             }
             else if (graph.Order == 42)
             {
                 if (seq[1] == 21) { description = "D21"; }
                 else if (seq[1] == 7)
                 {
-                    if (seq[2] == 14) { description = "unnamed"; } // 1
+                    if (seq[2] == 14) { description = "<x,y | x^7 = y^6 = 1, yxy^-1 = x^5>"; } // 1
                     else { description = "Z3 x D7"; }
                 }
                 else if (seq[1] == 3) { description = "Z7 x S3"; }
-                else { description = "unnamed"; } // 2
+                else { description = "Z2 x <x,y | x^7 = y^3 = 1, yxy^-1 = x^4>"; } // 2
             }
             else if (graph.Order == 44)
             {
@@ -604,6 +597,99 @@ namespace Cayley
             else if (graph.Order == 48)
             {
                 // Really stretch goal (!)
+                if (seq[1] == 27) { description = "Z2 x D12"; }
+                else if (seq[1] == 25) { description = "D24"; }
+                else if (seq[1] == 23) { description = "D4 x S3"; }
+                else if (seq[1] == 19)
+                {
+                    if (seq[2] == 8) { description = "Z2 x S4"; }
+                    else if (seq[4] == 14) { description = "unnamed"; } // 43
+                    else { description = "unnamed"; } // 41
+                }
+                else if (seq[1] == 17) { description = "unnamed"; } // 15
+                else if (seq[1] == 15)
+                {
+                    if (seq[2] == 32) { description = "unnamed"; } // 50
+                    else { description = "Z2^2 x A4"; }
+                }
+                else if (seq[1] == 13)
+                {
+                    if (seq[2] == 8) { description = "GL(2, 3)"; }
+                    else if (seq[3] == 14) { description = "unnamed"; } // 6
+                    else { description = "unnamed (try D(Z3 x Q8))"; } // 17
+                }
+                else if (seq[1] == 11)
+                {
+                    if (seq[3] == 20) { description = "unnamed"; } // 39
+                    else { description = "Z6 x D4"; }
+                }
+                else if (seq[1] == 9) { description = "Z3 x D8"; }
+                else if (seq[1] == 7)
+                {
+                    if (seq[2] == 8)
+                    {
+                        if (seq[3] == 24) { description = "unnamed GAP calls it A4 : C4"; }
+                        else if (GetDerivedSubgroup().Length == 8) { description = "unnamed"; } // 33
+                        else { description = "Z4 x A4"; }
+                    }
+                    else
+                    {
+                        if (seq[3] == 24)
+                        {
+                            if (seq[4] == 2) { description = "Q8 x S3"; }
+                            else if (CountPowers(6) == 5) { description = "unnamed"; } // 19
+                            else { description = "unnamed"; } // 42
+                        }
+                        else if (seq[4] == 14)
+                        {
+                            if (CountPowers(6) == 5) { description = "unnamed"; } // 21
+                            else { description = "unnamed"; } // 47
+                        }
+                        else
+                        {
+                            if (GetCenter().Length == 8) { description = "Z8 x S3"; }
+                            else { description = "unnamed"; } // 5
+                        }
+                    }
+                }
+                else if (seq[1] == 5)
+                {
+                    if (seq[3] == 14) { description = "unnamed"; } // 16
+                    else { description = "unnamed Gap calls it Z3 x QD16"; } // 26
+                }
+                else if (seq[1] == 3)
+                {
+                    if (seq[2] == 32) { description = "unnamed"; } // 3
+                    else if (seq[2] == 8) { description = "Z2 x SL(2, 3)"; }
+                    else if (seq[3] == 28)
+                    {
+                        int n = CountPowers(6);
+                        if (n == 6) { description = "unnamed"; } // 11
+                        else if (n == 4) { description = "unnamed"; } // 34
+                        // Problem groups
+                        // 12 -- (Z3 : Z4) : Z4
+                        // 13 -- Z12 : Z4
+                    }
+                    else if (seq[3] == 12)
+                    {
+                        if (CountPowers(6) == 5) { description = "unnamed"; } // 22
+                        else { description = "Z6 x Q8"; }
+                    }
+                    else if (seq[5] == 24)
+                    {
+                        if (GetCenter().Length == 8) { description = "unnamed"; } // 9
+                        else { description = "unnamed"; } // 10
+                    }
+                    else { description = "unnamed"; } // 24
+                }
+                else
+                {
+                    if (seq[2] == 8) { description = "unnamed"; } // 28 (known as "Z2 . S4 = SL(2, 3) . Z2")
+                    else if (seq[3] == 26) { description = "unnamed"; } // 8
+                    else if (seq[3] == 18) { description = "unnamed"; } // 18
+                    else if (seq[3] == 10) { description = "Z3 x Q16"; } // 27
+                    else { description = "unnamed"; } // 1
+                }
             }
             else if (graph.Order == 50)
             {
@@ -619,6 +705,74 @@ namespace Cayley
                 if (seq[1] == 27) { description = "D26"; }
                 if (seq[1] == 13) { description = "<x,y | x^13 = y^4 = 1, yxy^-1 = x^5>"; } // 13
                 else { description = "Dic13"; }
+            }
+            else if (graph.Order == 54)
+            {
+                if (seq[1] == 27)
+                {
+                    if (seq[2] == 26) { description = "unnamed"; } // 14
+                    else if (seq[2] == 8) { description = "unnamed"; } // 7
+                    else { description = "D27"; }
+                }
+                else if (seq[1] == 9)
+                {
+                    if (seq[2] == 26)
+                    {
+                        if (GetCenter().Length == 3) { description = "unnamed"; } // 13
+                        else { description = "unnamed"; } // 5
+                    }
+                    else
+                    {
+                        if (CountPowers(6) == 10) { description = "unnamed"; } // 8
+                        else if (GetCenter().Length == 3) { description = "Z3 x D9"; }
+                        else { description = "unnamed"; } // 6
+                    }
+                }
+                else if (seq[1] == 3)
+                {
+                    if (seq[2] == 26) { description = "Z3^2 x S3"; }
+                    else { description = "Z9 x S3"; }
+                }
+                else
+                {
+                    if (seq[2] == 26) { description = "unnamed"; } // 10
+                    else { description = "unnamed"; } // 11
+                }
+            }
+            else if (graph.Order == 56)
+            {
+                if (seq[1] == 31) { description = "Z2^2 x D7"; }
+                else if (seq[1] == 29) { description = "D28"; }
+                else if (seq[1] == 17) { description = "unnamed"; } // 7
+                else if (seq[1] == 15) { description = "Z4 x D7"; }
+                else if (seq[1] == 7) { description = "unnamed"; } // 11
+                else if (seq[1] == 5) { description = "Z7 x D4"; }
+                else if (seq[1] == 3) { description = "unnamed"; } // 6
+                else if (seq[2] == 30) { description = "unnamed"; } // 3
+                else if (seq[2] == 6) { description = "Z7 x Q8"; }
+                else { description = "unnamed"; } // 1
+            }
+            else if (graph.Order == 60)
+            {
+                if (seq[1] == 31) { description = "D30"; }
+                else if (seq[1] == 23) { description = "S3 x D5"; }
+                else if (seq[1] == 15) { description = "A5"; } // (!)
+                else if (seq[1] == 11) { description = "Z6 x D5"; }
+                else if (seq[1] == 7) { description = "Z10 x S3"; }
+                else if (seq[1] == 5)
+                {
+                    if (seq[3] == 30) { description = "unnamed"; } // 7
+                    else { description = "unnamed"; } // 6
+                }
+                else if (seq[1] == 3) { description = "Z5 x A4"; }
+                else if (seq[3] == 30) { description = "unnamed"; } // 3
+                else if (seq[3] == 10) { description = "unnamed"; } // 2
+                else { description = "unnamed"; } // 1
+            }
+            else if (graph.Order == 63)
+            {
+                if (seq[1] == 44) { description = "Z3 x <x,y | x^7 = y^3 = 1, yxy^-1 = x^2>"; } // 3
+                else { description = "probably <x,y | x^7 = y^9 = 1, yxy^-1 = x^2"; } // 1
             }
             // ...
 

@@ -73,7 +73,7 @@ namespace Cayley
             else
             {
                 rmin = 0.2 * D;
-                rmax = 0.4 * D;
+                rmax = 0.45 * D;
                 h = (rmax - rmin) / (nPolygons - 1);
             }
 
