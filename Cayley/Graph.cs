@@ -225,7 +225,7 @@ namespace Cayley
                     for (; k < order && (compare.Item1[j] != refer.Item1[k] || compare.Item2[j] != refer.Item2[k]); k++);
                     if (k == order)
                     {
-                        // 3. Homogeneity
+                        // 3. Homogeneity (vertex transitive?)
                         return null;
                     }
                 }

@@ -43,31 +43,24 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="30"/>
             </Grid.RowDefinitions>
-            <local:GraphCanvas x:Name="canvas" Grid.Row="0" Background="White"/>
-            <ScrollViewer x:Name="foundGroupsViewer" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="LightGray" Height="200" Width="600" Margin="5,5,5,5" Visibility="Hidden">
-                <ItemsControl Name="foundItemsControl">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Margin="0,0,5,5">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="550" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="{Binding Order}" />
-                                <ProgressBar Grid.Column="1" HorizontalAlignment="Left" Width="{Binding Width}" Minimum="0" Maximum="{Binding Maximum}" Value="{Binding Count}" />
-                            </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
+            <local:GraphCanvas x:Name="canvas" Grid.Row="0" Background="White">
+                <!--<Popup PlacementRectangle="20,20,0,0" Name="pop" Width="600" Height="400" IsOpen="False">
+                    <ScrollViewer>
+                        <TextBlock FontSize="72" TextWrapping="Wrap" Background="Gray">
+                            aaaaaaaaaaaAaaaaaaaaajajglijgorigaoijlijfajgoaijfawlfoiajfbaaoijf;ogijejfaoijgaliejfajdlfijaleifjlij
+                        </TextBlock>
+                    </ScrollViewer>
+                </Popup>-->
+            </local:GraphCanvas>
             <TextBlock Name="display" Grid.Row="1" Margin="5,5,5,5" TextAlignment="Right"/>
         </Grid>
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="100"/> <!-- Color buttons -->
-                <RowDefinition Height="2*"/> <!-- Point placer controls -->
-                <RowDefinition Height="2*"/> <!-- Check button -->
-                <RowDefinition Height="*"/> <!-- Sweet, sweet whitespace -->
+                <RowDefinition Height="4*"/> <!-- Point placer controls -->
+                <RowDefinition Height="4*"/> <!-- Check button -->
+                <RowDefinition Height="4*"/> <!-- Sweet, sweet whitespace -->
+                <!--<RowDefinition Height="1*"/> --><!-- Menu (?) button -->
                 <RowDefinition Height="1*"/> <!-- Quit button -->
             </Grid.RowDefinitions>
             <Grid Grid.Row="0">
@@ -112,6 +105,7 @@
                 <Button Grid.Row="3" Name="clearButton" Click="ClearButton_Click">Clear</Button>
             </Grid>
             <Button Grid.Row="2" Name="checkButton" Click="CheckButton_Click">Check</Button>
+            <!--<Button Grid.Row="4" Name="menuButton" Click="MenuButton_Click">Menu</Button>-->
             <Button Grid.Row="5" Name="quitButton" Click="QuitButton_Click">Quit</Button>
         </Grid>
     </Grid>

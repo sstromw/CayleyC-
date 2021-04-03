@@ -66,7 +66,7 @@ namespace Cayley
             double rmin, rmax, h;
             if (nPolygons == 1)
             {
-                rmin = 0.4 * D;
+                rmin = 0.45 * D;
                 rmax = rmin + 0.5;
                 h = 1.0;
             }

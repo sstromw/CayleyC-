@@ -82,6 +82,8 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="AbstractGroupFactory.cs" />
+    <Compile Include="GroupId.cs" />
     <Compile Include="DiscreteMath.cs" />
     <Compile Include="Graph.cs" />
     <Compile Include="Group.cs" />
@@ -92,6 +94,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MathUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

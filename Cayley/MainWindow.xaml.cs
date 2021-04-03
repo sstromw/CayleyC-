@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -14,9 +15,7 @@ namespace Cayley
     /// </summary>
     public partial class MainWindow : Window
     {
-#if SAVE_DATA
-        private DataReader data;
-#endif
+        private Menu mainMenu;
 
         public MainWindow()
         {
@@ -42,7 +41,7 @@ namespace Cayley
             if (G != null)
             {
                 ButtonColorFlash(button, Brushes.Green);
-                display.Text = G.GroupDescription;
+                display.Text = G.ToString();
             }
             else
             {
@@ -56,6 +55,13 @@ namespace Cayley
             canvas.ClearAll();
             display.Text = string.Empty;
         }
+
+        /*
+        private void MenuButton_Click(object sender, RoutedEventArgs e)
+        {
+            pop.IsOpen ^= true;
+        }
+        */
 
         private void QuitButton_Click(object sender, RoutedEventArgs e) { Close(); }
 

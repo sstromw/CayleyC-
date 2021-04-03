@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Cayley
 {
     /// <summary>
-    /// Just a class with a handful of helper functions
+    /// Just a class with a handful of helper functions. Written by an idiot.
     /// </summary>
     static class DiscreteMath
     {
